@@ -51,5 +51,16 @@ SELECT state,
 FROM cte
 group by state;
 
+with cte as(
+select *
+, row_number() over(partition by state order by population desc) as max_p
+, row_number() over(partition by state order by population) as min_p
+from city_population
+)
+SELECT state,
+    max(CASE WHEN max_p = 1 THEN city END) AS max_populated_city,
+    max(CASE WHEN min_p = 1 THEN city END) AS min_populated_city
+FROM cte
+group by state;
 
 
