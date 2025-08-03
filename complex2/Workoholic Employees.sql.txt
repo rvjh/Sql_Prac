@@ -1,0 +1,31 @@
+WITH cte AS (
+  SELECT *, 
+         TIMESTAMPDIFF(MINUTE, login, logout) / 60 AS hours_worked
+  FROM employees
+),
+cte2 AS (
+  SELECT *, 
+         CASE 
+           WHEN hours_worked >= 10 THEN '10+'
+           WHEN hours_worked >= 8 THEN '8+'
+           ELSE '8-'
+         END AS time_diff
+  FROM cte
+),
+cte3 AS (
+  SELECT 
+    emp_id, 
+    COUNT(*) AS total_8_Days,
+    SUM(CASE WHEN time_diff = '10+' THEN 1 ELSE 0 END) AS total_10_Days
+  FROM cte2
+  WHERE time_diff != '8-'
+  GROUP BY emp_id
+)
+SELECT 
+  emp_id,
+  CASE  
+    WHEN total_8_Days >= 3 AND total_10_Days >= 2 THEN 'Both'
+    WHEN total_8_Days >= 3 THEN '1'
+    ELSE '2'
+  END AS criterian
+FROM cte3;
